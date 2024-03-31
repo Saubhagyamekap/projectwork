@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script>
+
+        function LoadCategories(){
+            $.ajax({
+                method: "get",
+                url: "http://fakestoreapi.com/products/categories",
+                success: (categories)=> {
+                    categories.unshift("all");
+                    categories.map(category=>{
+                          $(`<option value=${category}>${category.toUpperCase()}</option>`).appendTo("#lstCategories");
+                    })
+                }
+            })
+        }
+
+        function LoadProducts(url){
+            $("main").html("");
+            $.ajax({
+                method:"get",
+                url: url,
+                success: (products=> {
+                    products.map(product=>{
+                        $(`
+                          <div class="card m-2 p-2" style="width:200px">
+                            <img src=${product.image} class="card-img-top" height="140">
+                            <div class="card-header overflow-auto" style="height:140px">
+                                <p> ${product.title} </p>
+                            </div>
+                            <div>
+                                <button id="btnAdd" value=${product.id} class="btn btn-dark w-100"> Add to Cart </button>
+                            </div>
+                          </div>
+                        `).appendTo("main");
+                    })
+                })
+            })
+        }
+
+        $(function(){
+            LoadCategories();
+            LoadProducts(`http://fakestoreapi.com/products`);
+
+            $("#lstCategories").change(()=>{
+                if($("#lstCategories").val()==="all"){
+                    LoadProducts(`http://fakestoreapi.com/products`);
+                } else {
+                    LoadProducts(`http://fakestoreapi.com/products/category/${$("#lstCategories").val()}`);
+                }
+            })
+
+            var cartItems = [];
+
+            $(document).on("click", "#btnAdd", (e)=>{
+                 $.ajax({
+                    method: "get",
+                    url: `http://fakestoreapi.com/products/${e.target.value}`,
+                    success: (product)=> {
+                        cartItems.push(product);
+                        alert(`${product.title}\nAdded to Cart`);
+                        console.log(cartItems);
+                    }
+                 })
+            })
+
+        })
+    </script>
+</head>
+<body class="container-fluid">
+    <header class="bg-dark text-white text-center p-2">
+        <div class="h2">Fakestore API</div>
+    </header>
+    <section class="mt-3 row">
+        <nav class="col-2">
+           <label class="form-label fw-bold">Select Category</label>
+           <div>
+              <select class="form-select" id="lstCategories">
+
+              </select>
+           </div>
+        </nav>
+        <main class="col-10 d-flex flex-wrap overflow-auto" style="height:500px">
+
+        </main>
+    </section>
+</body>
+</html>
